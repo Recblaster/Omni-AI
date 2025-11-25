@@ -9,9 +9,12 @@ const App: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [attachedImage, setAttachedImage] = useState<{data: string, mimeType: string} | null>(null);
+  const [attachment, setAttachment] = useState<{data: string, mimeType: string} | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
   
   const bottomRef = useRef<HTMLDivElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   // Auto-scroll logic
   useEffect(() => {
@@ -25,22 +28,74 @@ const App: React.FC = () => {
     const reader = new FileReader();
     reader.onloadend = () => {
       const b64 = (reader.result as string).split(',')[1];
-      setAttachedImage({ data: b64, mimeType: file.type });
+      setAttachment({ data: b64, mimeType: file.type });
     };
     reader.readAsDataURL(file);
   };
 
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = recorder;
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64String = (reader.result as string).split(',')[1];
+          setAttachment({
+            data: base64String,
+            mimeType: 'audio/webm'
+          });
+        };
+        reader.readAsDataURL(audioBlob);
+        
+        // Stop all tracks
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      recorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error("Error accessing microphone:", err);
+      alert("Could not access microphone.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
   const handleSend = async () => {
-    if (!input.trim() && !attachedImage) return;
+    if (!input.trim() && !attachment) return;
 
     // 1. User Message
     const userContent: ContentBlock[] = [];
-    if (attachedImage) {
-      userContent.push({ 
-        type: 'image', 
-        url: `data:${attachedImage.mimeType};base64,${attachedImage.data}`, 
-        prompt: 'User Upload' 
-      });
+    if (attachment) {
+      if (attachment.mimeType.startsWith('image/')) {
+        userContent.push({ 
+          type: 'image', 
+          url: `data:${attachment.mimeType};base64,${attachment.data}`, 
+          prompt: 'User Upload' 
+        });
+      } else if (attachment.mimeType.startsWith('audio/')) {
+        userContent.push({
+          type: 'audio',
+          url: `data:${attachment.mimeType};base64,${attachment.data}`,
+          text: 'Voice Input'
+        });
+      }
     }
     if (input.trim()) {
       userContent.push({ type: 'text', content: input });
@@ -55,7 +110,8 @@ const App: React.FC = () => {
 
     setMessages(prev => [...prev, userMsg]);
     setInput('');
-    setAttachedImage(null);
+    const currentAttachment = attachment;
+    setAttachment(null);
     setIsLoading(true);
 
     // 2. Bot Message Placeholder
@@ -71,7 +127,7 @@ const App: React.FC = () => {
 
     try {
       // 3. Start Stream
-      const stream = streamOrchestrateResponse(input, attachedImage);
+      const stream = streamOrchestrateResponse(input, currentAttachment);
       let currentTextContent = "";
       let currentGrounding: GroundingChunk[] = [];
 
@@ -213,13 +269,19 @@ const App: React.FC = () => {
       {/* Input Area */}
       <div className="p-6 bg-gradient-to-t from-slate-950 via-slate-950 to-transparent z-10">
         <div className="relative max-w-3xl mx-auto">
-            {attachedImage && (
+            {attachment && (
                 <div className="absolute -top-14 left-0 bg-slate-900/90 backdrop-blur px-3 py-2 rounded-lg border border-slate-700 flex items-center gap-3 shadow-xl">
-                     <div className="w-8 h-8 bg-slate-800 rounded flex items-center justify-center overflow-hidden">
-                       <img src={`data:${attachedImage.mimeType};base64,${attachedImage.data}`} className="w-full h-full object-cover" alt="preview" />
-                     </div>
-                     <span className="text-xs text-slate-300 font-medium">Image attached</span>
-                     <button onClick={() => setAttachedImage(null)} className="ml-2 text-slate-500 hover:text-red-400">×</button>
+                     {attachment.mimeType.startsWith('image/') ? (
+                       <div className="w-8 h-8 bg-slate-800 rounded flex items-center justify-center overflow-hidden">
+                         <img src={`data:${attachment.mimeType};base64,${attachment.data}`} className="w-full h-full object-cover" alt="preview" />
+                       </div>
+                     ) : (
+                       <div className="w-8 h-8 bg-slate-800 rounded flex items-center justify-center text-red-400">
+                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                       </div>
+                     )}
+                     <span className="text-xs text-slate-300 font-medium">{attachment.mimeType.startsWith('image/') ? 'Image attached' : 'Audio recorded'}</span>
+                     <button onClick={() => setAttachment(null)} className="ml-2 text-slate-500 hover:text-red-400">×</button>
                 </div>
             )}
             
@@ -231,6 +293,19 @@ const App: React.FC = () => {
                     </svg>
                 </label>
 
+                <button 
+                  onMouseDown={startRecording}
+                  onMouseUp={stopRecording}
+                  onTouchStart={startRecording}
+                  onTouchEnd={stopRecording}
+                  className={`p-3 transition-colors ${isRecording ? 'text-red-500 animate-pulse' : 'text-slate-500 hover:text-indigo-400'}`}
+                  title="Hold to record"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill={isRecording ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                  </svg>
+                </button>
+
                 <textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -240,14 +315,14 @@ const App: React.FC = () => {
                             handleSend();
                         }
                     }}
-                    placeholder="Ask Gemini anything..."
+                    placeholder={isRecording ? "Recording..." : "Ask Gemini anything..."}
                     className="flex-1 bg-transparent border-none text-slate-200 placeholder-slate-600 focus:ring-0 resize-none py-3 max-h-32 min-h-[48px] text-sm"
                     rows={1}
                 />
 
                 <button 
                     onClick={handleSend}
-                    disabled={isLoading || (!input.trim() && !attachedImage)}
+                    disabled={isLoading || (!input.trim() && !attachment)}
                     className="p-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-600 text-white rounded-xl transition-all shadow-lg shadow-indigo-500/20"
                 >
                     {isLoading ? (

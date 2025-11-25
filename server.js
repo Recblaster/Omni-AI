@@ -80,7 +80,8 @@ app.post('/api/chat', async (req, res) => {
       requestParts.push({
         inlineData: { mimeType: attachment.mimeType, data: attachment.data }
       });
-      requestParts.push({ text: "User attached an image. " + (input || "") });
+      const mediaType = attachment.mimeType.startsWith('image') ? 'image' : 'audio';
+      requestParts.push({ text: `User attached an ${mediaType}. ` + (input || "") });
     } else {
       requestParts.push({ text: input });
     }
@@ -116,9 +117,9 @@ app.post('/api/chat', async (req, res) => {
             res.write(`data: ${JSON.stringify({ type: 'thought', content: `Generating image: "${args.prompt}"...` })}\n\n`);
             
             try {
-               // Handle attachment for image editing if present
+               // Handle attachment for image editing if present and is an image
                const imgParts = [];
-               if (attachment) {
+               if (attachment && attachment.mimeType.startsWith('image/')) {
                   imgParts.push({ inlineData: { mimeType: attachment.mimeType, data: attachment.data } });
                }
                imgParts.push({ text: args.prompt });

@@ -68,7 +68,8 @@ export async function* streamOrchestrateResponse(
     requestParts.push({
       inlineData: { mimeType: attachment.mimeType, data: attachment.data }
     });
-    requestParts.push({ text: "User attached an image. " + userInput });
+    const mediaType = attachment.mimeType.startsWith('image') ? 'image' : 'audio';
+    requestParts.push({ text: `User attached an ${mediaType}. ` + userInput });
   } else {
     requestParts.push({ text: userInput });
   }
@@ -133,7 +134,7 @@ export async function* streamOrchestrateResponse(
 
 async function generateImage(ai: GoogleGenAI, prompt: string, aspectRatio: string = "1:1", attachment: any): Promise<ContentBlock | null> {
     const parts: any[] = [];
-    if (attachment) {
+    if (attachment && attachment.mimeType.startsWith('image/')) {
        parts.push({ inlineData: { mimeType: attachment.mimeType, data: attachment.data } });
     }
     parts.push({ text: prompt });
