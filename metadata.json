@@ -1,0 +1,9 @@
+{
+  "name": "Gemini Omni-Interface",
+  "description": "A multimodal React application featuring Gemini 2.5 and 3.0 models. Includes Live API (Voice), Advanced Image Generation/Editing, Search/Maps Grounding, and Reasoning capabilities.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
