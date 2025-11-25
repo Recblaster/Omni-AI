@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import { ChatMessage as ChatMessageType, MessageRole, ContentBlock } from '../types';
 import { decodeAudioData, b64ToUint8Array } from '../services/audioUtils';
 
@@ -47,7 +50,19 @@ const ContentBlockRenderer: React.FC<{ block: ContentBlock; isUser: boolean }> =
           ? 'bg-neutral-800 text-neutral-100 rounded-tr-sm border border-white/5' 
           : 'bg-transparent text-neutral-200 pl-0 border-none shadow-none'}
       `}>
-        <div className="whitespace-pre-wrap font-normal tracking-wide">{block.content}</div>
+        <div className="markdown-content">
+          <ReactMarkdown 
+            remarkPlugins={[remarkMath]} 
+            rehypePlugins={[rehypeKatex]}
+            components={{
+              // Custom components to override default styles if needed, 
+              // mostly handled by CSS class .markdown-content in index.html
+              img: ({node, ...props}) => <img {...props} className="rounded-lg max-w-full my-2" alt={props.alt || ''} />,
+            }}
+          >
+            {block.content}
+          </ReactMarkdown>
+        </div>
         
         {block.grounding && block.grounding.length > 0 && (
           <div className="mt-4 pt-3 border-t border-white/5">

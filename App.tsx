@@ -315,13 +315,13 @@ const App: React.FC = () => {
             
             <div className={`
               bg-neutral-900/80 backdrop-blur-2xl border border-white/10 
-              rounded-[2rem] flex items-end p-2 shadow-2xl shadow-black/50 
+              rounded-[1.75rem] flex items-end p-2 gap-2 shadow-2xl shadow-black/50 
               transition-all duration-300
               ${isRecording ? 'ring-2 ring-red-500/50 border-red-500/30' : 'focus-within:ring-2 focus-within:ring-indigo-500/30 focus-within:border-indigo-500/50'}
             `}>
-                <label className="p-4 text-neutral-400 hover:text-white cursor-pointer transition-colors rounded-full hover:bg-white/5 active:scale-95" title="Attach Image">
+                <label className="w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-white cursor-pointer transition-colors rounded-full hover:bg-white/5 active:scale-95" title="Attach Image">
                     <input type="file" className="hidden" accept="image/*" onChange={handleFileSelect} />
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                 </label>
@@ -331,10 +331,10 @@ const App: React.FC = () => {
                   onMouseUp={stopRecording}
                   onTouchStart={startRecording}
                   onTouchEnd={stopRecording}
-                  className={`p-4 rounded-full transition-all active:scale-95 ${isRecording ? 'text-red-500 bg-red-500/10' : 'text-neutral-400 hover:text-white hover:bg-white/5'}`}
+                  className={`w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 active:scale-95 ${isRecording ? 'text-red-500 bg-red-500/10 scale-110 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'text-neutral-400 hover:text-white hover:bg-white/5'}`}
                   title="Hold to record"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill={isRecording ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill={isRecording ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                   </svg>
                 </button>
@@ -349,19 +349,19 @@ const App: React.FC = () => {
                         }
                     }}
                     placeholder={isRecording ? "Listening..." : "Ask me anything..."}
-                    className="flex-1 bg-transparent border-none text-neutral-100 placeholder-neutral-500 focus:ring-0 resize-none py-4 max-h-32 min-h-[56px] text-base leading-relaxed"
+                    className="flex-1 bg-transparent border-none text-neutral-100 placeholder-neutral-500 focus:ring-0 resize-none py-3 max-h-32 min-h-[44px] text-base leading-relaxed"
                     rows={1}
                 />
 
                 <button 
                     onClick={handleSend}
                     disabled={isLoading || (!input.trim() && !attachment)}
-                    className="p-4 bg-white text-black hover:bg-neutral-200 disabled:bg-neutral-800 disabled:text-neutral-600 rounded-[1.5rem] transition-all duration-200 active:scale-95 shadow-lg shadow-white/5"
+                    className="w-10 h-10 flex items-center justify-center bg-white text-black hover:bg-neutral-200 disabled:bg-neutral-800 disabled:text-neutral-600 rounded-full transition-all duration-200 active:scale-95 shadow-lg shadow-white/5"
                 >
                     {isLoading ? (
-                        <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+                        <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
                     ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 rotate-90 ml-0.5" viewBox="0 0 20 20" fill="currentColor">
                             <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
                         </svg>
                     )}

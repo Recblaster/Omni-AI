@@ -6,6 +6,7 @@
     <title>Gemini Omni-Interface</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <style>
       body {
         font-family: 'Inter', sans-serif;
@@ -30,6 +31,17 @@
       ::-webkit-scrollbar-thumb:hover {
         background: #64748b; 
       }
+      
+      /* Markdown Styles */
+      .markdown-content p { margin-bottom: 0.75rem; }
+      .markdown-content p:last-child { margin-bottom: 0; }
+      .markdown-content code { background: rgba(255,255,255,0.1); padding: 0.2em 0.4em; border-radius: 4px; font-size: 0.9em; }
+      .markdown-content pre code { background: transparent; padding: 0; }
+      .markdown-content pre { background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 0.5rem 0; }
+      .markdown-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+      .markdown-content ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+      .markdown-content blockquote { border-left: 4px solid rgba(255,255,255,0.2); padding-left: 1rem; font-style: italic; color: #94a3b8; }
+      .markdown-content a { color: #818cf8; text-decoration: underline; }
     </style>
   <script type="importmap">
 {
@@ -37,7 +49,10 @@
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0"
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-markdown": "https://esm.sh/react-markdown@9?external=react",
+    "remark-math": "https://esm.sh/remark-math@6",
+    "rehype-katex": "https://esm.sh/rehype-katex@7"
   }
 }
 </script>
