@@ -1,34 +1,8 @@
-import { GoogleGenAI, LiveServerMessage, Modality, FunctionDeclaration, Type, Schema } from "@google/genai";
-import { ModelType, ContentBlock, AppMode, StreamUpdate } from "../types";
+import { GoogleGenAI, LiveServerMessage, Modality, FunctionDeclaration, Type } from "@google/genai";
+import { ModelType, ContentBlock, StreamUpdate } from "../types";
 import { convertFloat32ToInt16, arrayBufferToBase64 } from "./audioUtils";
 
-// Safely retrieve API Key (handles browser, vite, and node environments)
-const getApiKey = () => {
-  try {
-    // Check for standard process.env (Build tools/Node)
-    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
-      return process.env.API_KEY;
-    }
-    // Check for Vite specific env (if using Vite)
-    if (typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.VITE_API_KEY) {
-      return (import.meta as any).env.VITE_API_KEY;
-    }
-  } catch (e) {
-    console.warn("Could not retrieve API_KEY from environment");
-  }
-  return '';
-};
-
-const apiKey = getApiKey();
-
-let aiClient: GoogleGenAI | null = null;
-
-const getAiClient = () => {
-  if (!aiClient) {
-    aiClient = new GoogleGenAI({ apiKey });
-  }
-  return aiClient;
-};
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 // --- ORCHESTRATOR TOOLS ---
 
@@ -78,7 +52,6 @@ export async function* streamOrchestrateResponse(
   userInput: string, 
   attachment: { data: string; mimeType: string } | null
 ): AsyncGenerator<StreamUpdate, void, unknown> {
-  const ai = getAiClient();
   
   const requestParts: any[] = [];
   if (attachment) {
@@ -194,21 +167,18 @@ async function generateAudio(ai: GoogleGenAI, text: string): Promise<ContentBloc
     return null;
 }
 
-// --- LIVE SESSION (Unchanged) ---
+// --- LIVE SESSION ---
 
 export class LiveSession {
   private sessionPromise: Promise<any> | null = null;
-  private ai: GoogleGenAI;
   
   constructor(
     private onAudioData: (data: string) => void,
     private onClose: () => void
-  ) {
-    this.ai = getAiClient();
-  }
+  ) {}
 
   async connect(systemInstruction: string = "You are a helpful assistant.") {
-    this.sessionPromise = this.ai.live.connect({
+    this.sessionPromise = ai.live.connect({
       model: ModelType.LIVE,
       callbacks: {
         onopen: () => console.log('Live Session Opened'),
