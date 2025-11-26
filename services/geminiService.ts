@@ -2,7 +2,24 @@ import { GoogleGenAI, LiveServerMessage, Modality, FunctionDeclaration, Type, Sc
 import { ModelType, ContentBlock, AppMode, StreamUpdate } from "../types";
 import { convertFloat32ToInt16, arrayBufferToBase64 } from "./audioUtils";
 
-const apiKey = process.env.API_KEY || ''; 
+// Safely retrieve API Key (handles browser, vite, and node environments)
+const getApiKey = () => {
+  try {
+    // Check for standard process.env (Build tools/Node)
+    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+      return process.env.API_KEY;
+    }
+    // Check for Vite specific env (if using Vite)
+    if (typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.VITE_API_KEY) {
+      return (import.meta as any).env.VITE_API_KEY;
+    }
+  } catch (e) {
+    console.warn("Could not retrieve API_KEY from environment");
+  }
+  return '';
+};
+
+const apiKey = getApiKey();
 
 let aiClient: GoogleGenAI | null = null;
 
